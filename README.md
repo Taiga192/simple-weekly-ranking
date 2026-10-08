@@ -1,19 +1,19 @@
-# Wochenrangliste
+# Weekly Ranking
 
-Eine kleine Ranglisten-Webseite mit Node.js 24, SQLite und CSV-Import. Beim ersten Start werden die Spieler aus `data/rangliste.csv` geladen. Weitere Exporte lassen sich über **CSV importieren** einlesen; die vorhandene Rangliste wird dabei atomar ersetzt.
+A small ranking web page built with Node.js 24, SQLite and CSV import. On first start the players are loaded from `data/rangliste.csv`. Further exports can be loaded with **Import CSV**; the existing ranking is replaced atomically.
 
-Punkte werden aus Montag bis Samstag neu berechnet. Excel-Formeln in den abgeleiteten CSV-Spalten werden ignoriert. Leere Tageswerte bleiben leer und zählen nicht in Summe oder Tagesdurchschnitt. Die Rangfolge richtet sich nach der Gesamtpunktzahl. Das Tagesziel beträgt 2.300.000 Punkte.
+Points are recalculated from Monday to Saturday. Excel formulas in the derived CSV columns are ignored. Empty daily values stay empty and do not count towards the total or the daily average. Players are ranked by total points. The daily target is 2,300,000 points.
 
-## Lokal starten
+## Run locally
 
-Voraussetzung ist Node.js 24.
+Requires Node.js 24.
 
 ```sh
 npm install
 npm start
 ```
 
-Anschließend `http://localhost:3000` öffnen. Die SQLite-Datenbank wird unter `data/rangliste.sqlite` angelegt. Mit `npm test` laufen die Importtests.
+Then open `http://localhost:3000`. The SQLite database is created at `data/rangliste.sqlite`. `npm test` runs the import tests.
 
 ## Docker
 
@@ -21,22 +21,22 @@ Anschließend `http://localhost:3000` öffnen. Die SQLite-Datenbank wird unter `
 docker compose up --build -d
 ```
 
-Die Anwendung ist dann unter `http://localhost:3000` erreichbar. `./data` wird nach `/app/data` eingebunden; dadurch bleiben Datenbank und CSV auch beim Neuerstellen des Containers erhalten. Die CSV-Datei kann dort vor dem ersten Start ersetzt werden. `PORT` und `DATABASE_PATH` können als Umgebungsvariablen angepasst werden.
+The app is then available at `http://localhost:3000`. `./data` is mounted at `/app/data`, so the database and CSV survive rebuilding the container. The CSV file can be replaced there before the first start. `PORT` and `DATABASE_PATH` can be set as environment variables.
 
-## CSV-Format
+## CSV format
 
-Die Datei muss Semikolon-getrennt sein und die Spalten `Name`, `Montag Punkte`, `Dienstag Punkte`, `Mittwoch Punkte`, `Donnerstag Punkte`, `Freitag Punkte` und `Samstag Punkte` enthalten. Die übrigen Spalten des gelieferten Exports werden nicht zur Berechnung verwendet.
+The file must be semicolon-separated and contain the columns `Name`, `Montag Punkte`, `Dienstag Punkte`, `Mittwoch Punkte`, `Donnerstag Punkte`, `Freitag Punkte` and `Samstag Punkte`. The other columns of the export are not used for calculation.
 
-## Cloudflare Pages (kostenloses Hosting)
+## Cloudflare Pages (free hosting)
 
-Neben dem Node-Server läuft die App auch auf Cloudflare Pages mit D1 als Datenbank. `public/` wird statisch ausgeliefert, `functions/api/` ersetzt `server.js`.
+Besides the Node server, the app also runs on Cloudflare Pages with D1 as the database. `public/` is served statically and `functions/api/` replaces `server.js`.
 
-1. **D1-Datenbank** `rangliste` anlegen und `schema.sql` in der D1-Console ausführen (oder `npx wrangler d1 execute rangliste --remote --file=schema.sql`).
-2. Die **Datenbank-ID** in `wrangler.toml` bei `database_id` eintragen.
-3. **Pages-Projekt** aus dem GitHub-Repo erstellen: Build-Befehl leer lassen, Ausgabeverzeichnis `public`.
-4. Unter *Settings → Variables and Secrets* das Secret **`IMPORT_PASSWORD`** setzen. Ohne dieses Secret ist der Import gesperrt.
-5. Beim ersten Aufruf ist die Rangliste leer. Über **CSV importieren** (Passwort wird abgefragt) die Daten einspielen.
+1. Create a **D1 database** named `rangliste` and run `schema.sql` in the D1 console (or `npx wrangler d1 execute rangliste --remote --file=schema.sql`).
+2. Enter the **database ID** in `wrangler.toml` under `database_id`.
+3. Create a **Pages project** from the GitHub repo: build command `npm ci`, output directory `public`.
+4. Under *Settings → Variables and Secrets* set the secret **`IMPORT_PASSWORD`**. Without it, import is disabled.
+5. The ranking is empty on first load. Use **Import CSV** (you will be asked for the password) to load the data.
 
-Lokal testen: `npx wrangler d1 execute rangliste --local --file=schema.sql`, dann `npx wrangler pages dev public --binding IMPORT_PASSWORD=geheim`.
+Test locally: `npx wrangler d1 execute rangliste --local --file=schema.sql`, then `npx wrangler pages dev public --binding IMPORT_PASSWORD=secret`.
 
-Der Node-Server (`npm start`, Docker) bleibt unverändert nutzbar und verlangt kein Passwort.
+The Node server (`npm start`, Docker) keeps working unchanged and does not ask for a password.

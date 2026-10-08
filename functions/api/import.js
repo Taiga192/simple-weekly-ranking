@@ -17,18 +17,18 @@ function isAuthorized(request, env) {
 
 export async function onRequestPost({ request, env }) {
   if (!env.IMPORT_PASSWORD) {
-    return Response.json({ error: 'Import ist nicht eingerichtet: Secret IMPORT_PASSWORD fehlt.' }, { status: 500 });
+    return Response.json({ error: 'Import is not set up: the IMPORT_PASSWORD secret is missing.' }, { status: 500 });
   }
   if (!isAuthorized(request, env)) {
-    return Response.json({ error: 'Falsches Import-Passwort.' }, { status: 401 });
+    return Response.json({ error: 'Wrong import password.' }, { status: 401 });
   }
 
   try {
     const csvText = await request.text();
-    if (csvText.length > MAX_IMPORT_BYTES) throw new Error('Die CSV ist größer als 3 MB.');
+    if (csvText.length > MAX_IMPORT_BYTES) throw new Error('The CSV is larger than 3 MB.');
     const players = parseRankingCsv(csvText);
 
-    // Ein Batch läuft in D1 als Transaktion: entweder wird alles ersetzt oder nichts.
+    // A D1 batch runs as a transaction: either everything is replaced or nothing.
     const insertChunk = env.DB.prepare(`
       INSERT INTO players (name, ${DAY_KEYS.join(', ')})
       SELECT ${['$.name', ...DAY_KEYS.map((_, index) => `$.d[${index}]`)].map((path) => `json_extract(value, '${path}')`).join(', ')}

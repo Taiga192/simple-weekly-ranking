@@ -7,14 +7,14 @@ const syncState = document.querySelector('#sync-state');
 const toast = document.querySelector('#toast');
 const podium = document.querySelector('#podium');
 const filterGroup = document.querySelector('#filter');
-const dayLabels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 let players = [];
 let activeFilter = 'all';
 let toastTimer;
 
 function formatPoints(points, decimals = 1) {
   if (points === null || points === undefined) return '–';
-  return `${(points / 1_000_000).toLocaleString('de-DE', {
+  return `${(points / 1_000_000).toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   })}M`;
@@ -49,15 +49,15 @@ function renderPodium() {
     card.append(el('span', 'podium-rank', String(player.rank)));
     card.append(el('strong', 'podium-name', player.name));
     card.append(el('span', 'podium-points', formatPoints(player.totalPoints, 2)));
-    card.append(el('span', 'podium-meta', `Ø ${formatPoints(player.dailyAverage, 2)} pro Tag`));
+    card.append(el('span', 'podium-meta', `Avg ${formatPoints(player.dailyAverage, 2)} per day`));
     podium.append(card);
   }
 }
 
 function render() {
-  const search = searchInput.value.trim().toLocaleLowerCase('de-DE');
+  const search = searchInput.value.trim().toLocaleLowerCase('en-US');
   const visiblePlayers = players.filter((player) => {
-    if (!player.name.toLocaleLowerCase('de-DE').includes(search)) return false;
+    if (!player.name.toLocaleLowerCase('en-US').includes(search)) return false;
     const status = playerStatus(player);
     if (activeFilter === 'warning') return status === 'warning';
     if (activeFilter === 'remove') return status === 'remove';
@@ -77,7 +77,7 @@ function render() {
       const chip = el('span', 'chip', points === null ? '–' : formatPoints(points));
       if (points !== null) {
         chip.classList.add(points < DAILY_LIMIT ? 'chip-bad' : points === DAILY_LIMIT ? 'chip-edge' : 'chip-good');
-        chip.setAttribute('aria-label', `${dayLabels[index]}: ${points.toLocaleString('de-DE')} Punkte`);
+        chip.setAttribute('aria-label', `${dayLabels[index]}: ${points.toLocaleString('en-US')} points`);
       } else {
         chip.classList.add('chip-empty');
       }
@@ -98,19 +98,19 @@ function render() {
     crit.classList.add(player.daysAtOrBelowLimit === 0 ? 'count-clear' : player.daysAtOrBelowLimit >= 3 ? 'count-high' : 'count-some');
     row.append(makeCell('cell-crit', crit));
 
-    const label = { ok: 'OK', warning: 'Warnung', remove: 'Entfernung' }[status];
+    const label = { ok: 'OK', warning: 'Warning', remove: 'Removal' }[status];
     const pill = el('span', `status status-${status}`, label);
     if (status !== 'ok') {
       pill.title = status === 'remove'
-        ? 'An allen sechs Tagen bei oder unter dem Tagesziel'
-        : `${player.daysAtOrBelowLimit} Tag(e) bei oder unter dem Tagesziel`;
+        ? 'At or below the daily target on all six days'
+        : `${player.daysAtOrBelowLimit} day(s) at or below the daily target`;
     }
     row.append(makeCell('cell-status', pill));
     playerRows.append(row);
   }
 
   document.querySelector('#empty-state').hidden = visiblePlayers.length > 0;
-  document.querySelector('#visible-count').textContent = `${visiblePlayers.length} von ${players.length} Spielern`;
+  document.querySelector('#visible-count').textContent = `${visiblePlayers.length} of ${players.length} players`;
   document.querySelector('#player-count').textContent = String(players.length);
   document.querySelector('#leader-name').textContent = players[0]?.name ?? '–';
   document.querySelector('#leader-points').textContent = formatPoints(players[0]?.totalPoints, 2);
@@ -127,13 +127,13 @@ function showToast(message, isError = false) {
 
 function updateTimestamp(value) {
   document.querySelector('#updated-at').textContent = value
-    ? new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
-    : 'Noch kein Import';
+    ? new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+    : 'No import yet';
 }
 
 async function loadPlayers() {
   const response = await fetch('/api/players');
-  if (!response.ok) throw new Error('Die Rangliste konnte nicht geladen werden.');
+  if (!response.ok) throw new Error('Could not load the ranking.');
   const data = await response.json();
   players = data.players;
   updateTimestamp(data.updatedAt);
@@ -143,7 +143,7 @@ async function loadPlayers() {
 function importPassword() {
   const saved = sessionStorage.getItem('importPassword');
   if (saved) return saved;
-  const entered = window.prompt('Import-Passwort:');
+  const entered = window.prompt('Import password:');
   if (!entered) return null;
   sessionStorage.setItem('importPassword', entered);
   return entered;
@@ -176,11 +176,11 @@ fileInput.addEventListener('change', async () => {
     });
     const result = await response.json();
     if (response.status === 401) sessionStorage.removeItem('importPassword');
-    if (!response.ok) throw new Error(result.error ?? 'Der Import ist fehlgeschlagen.');
+    if (!response.ok) throw new Error(result.error ?? 'The import failed.');
     players = result.players;
     updateTimestamp(result.updatedAt);
     render();
-    showToast(`${result.count} Spieler importiert.`);
+    showToast(`${result.count} players imported.`);
   } catch (error) {
     showToast(error.message, true);
   } finally {

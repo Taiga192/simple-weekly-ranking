@@ -25,10 +25,10 @@ test('recalculates totals, averages, critical days, and rank from daily values',
 });
 
 test('rejects a missing player name and malformed point values', () => {
-  assert.throws(() => parseRankingCsv(`${header}\n${makeRow(['1', '', ''])}`), /Spielername/);
-  assert.throws(() => parseRankingCsv(`${header}\n${makeRow(['1', 'Alpha', 'keine'])}`), /Ungültiger Punktwert/);
+  assert.throws(() => parseRankingCsv(`${header}\n${makeRow(['1', '', ''])}`), /name is missing/);
+  assert.throws(() => parseRankingCsv(`${header}\n${makeRow(['1', 'Alpha', 'keine'])}`), /Invalid point value/);
 });
 
 test('requires the daily score columns but ignores spreadsheet formulas', () => {
-  assert.throws(() => parseRankingCsv('Name;Montag Punkte\nAlpha;2300000'), /CSV-Spalten fehlen/);
+  assert.throws(() => parseRankingCsv('Name;Montag Punkte\nAlpha;2300000'), /Missing CSV columns/);
 });

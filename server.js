@@ -38,7 +38,7 @@ if (playerCount === 0) {
   try {
     importCsv(readFileSync(seedCsvPath, 'utf8'));
   } catch (error) {
-    console.error(`CSV-Startimport fehlgeschlagen: ${error.message}`);
+    console.error(`Initial CSV import failed: ${error.message}`);
   }
 }
 
@@ -85,7 +85,7 @@ async function readRequestBody(request) {
   let size = 0;
   for await (const chunk of request) {
     size += chunk.length;
-    if (size > maxImportBytes) throw new Error('Die CSV ist größer als 3 MB.');
+    if (size > maxImportBytes) throw new Error('The CSV is larger than 3 MB.');
     chunks.push(chunk);
   }
   return Buffer.concat(chunks).toString('utf8');
@@ -116,13 +116,13 @@ const server = createServer(async (request, response) => {
   }
 
   if (request.method !== 'GET') {
-    sendJson(response, 405, { error: 'Methode nicht erlaubt.' });
+    sendJson(response, 405, { error: 'Method not allowed.' });
     return;
   }
 
   const fileName = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);
   if (!['index.html', 'app.js', 'styles.css'].includes(fileName)) {
-    sendJson(response, 404, { error: 'Nicht gefunden.' });
+    sendJson(response, 404, { error: 'Not found.' });
     return;
   }
   try {
@@ -130,12 +130,12 @@ const server = createServer(async (request, response) => {
     response.writeHead(200, { 'content-type': contentTypes[extname(fileName)] });
     response.end(body);
   } catch {
-    sendJson(response, 404, { error: 'Nicht gefunden.' });
+    sendJson(response, 404, { error: 'Not found.' });
   }
 });
 
 server.listen(port, '0.0.0.0', () => {
-  console.log(`Rangliste läuft auf http://localhost:${port}`);
+  console.log(`Ranking running at http://localhost:${port}`);
 });
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
