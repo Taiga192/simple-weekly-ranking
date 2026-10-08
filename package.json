@@ -1,0 +1,17 @@
+{
+  "name": "rangliste",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "dev": "node --watch --disable-warning=ExperimentalWarning server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "csv-parse": "^7.0.3"
+  }
+}

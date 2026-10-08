@@ -1,0 +1,11 @@
+services:
+  rangliste:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: "3000"
+      DATABASE_PATH: /app/data/rangliste.sqlite
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
