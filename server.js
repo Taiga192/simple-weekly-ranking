@@ -4,6 +4,7 @@ import { dirname, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { parseRankingCsv } from './lib/ranking.js';
+import { buildPlayerList } from './lib/players.js';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const publicDirectory = resolve(root, 'public');
@@ -71,22 +72,7 @@ function getPlayers() {
     FROM players
   `).all();
   const updatedAt = database.prepare("SELECT value FROM app_meta WHERE key = 'updated_at'").get()?.value ?? null;
-  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const players = rows.map((row) => {
-    const dailyPoints = days.map((day) => row[day]);
-    const enteredPoints = dailyPoints.filter((points) => points !== null);
-    const totalPoints = enteredPoints.reduce((total, points) => total + points, 0);
-    return {
-      name: row.name,
-      dailyPoints,
-      totalPoints,
-      dailyAverage: enteredPoints.length ? totalPoints / enteredPoints.length : null,
-      daysAtOrBelowLimit: enteredPoints.filter((points) => points <= 2_300_000).length,
-      daysEntered: enteredPoints.length,
-    };
-  });
-  players.sort((left, right) => right.totalPoints - left.totalPoints || left.name.localeCompare(right.name));
-  return { players: players.map((player, index) => ({ ...player, rank: index + 1 })), updatedAt };
+  return { players: buildPlayerList(rows), updatedAt };
 }
 
 function sendJson(response, statusCode, body) {

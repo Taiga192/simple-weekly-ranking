@@ -140,6 +140,15 @@ async function loadPlayers() {
   render();
 }
 
+function importPassword() {
+  const saved = sessionStorage.getItem('importPassword');
+  if (saved) return saved;
+  const entered = window.prompt('Import-Passwort:');
+  if (!entered) return null;
+  sessionStorage.setItem('importPassword', entered);
+  return entered;
+}
+
 searchInput.addEventListener('input', render);
 filterGroup.addEventListener('click', (event) => {
   const button = event.target.closest('button[data-filter]');
@@ -152,15 +161,21 @@ importButton.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files[0];
   if (!file) return;
+  const password = importPassword();
+  if (password === null) {
+    fileInput.value = '';
+    return;
+  }
   importButton.disabled = true;
   syncState.classList.add('sync-busy');
   try {
     const response = await fetch('/api/import', {
       method: 'POST',
-      headers: { 'content-type': 'text/csv; charset=utf-8' },
+      headers: { 'content-type': 'text/csv; charset=utf-8', 'x-import-password': password },
       body: await file.text(),
     });
     const result = await response.json();
+    if (response.status === 401) sessionStorage.removeItem('importPassword');
     if (!response.ok) throw new Error(result.error ?? 'Der Import ist fehlgeschlagen.');
     players = result.players;
     updateTimestamp(result.updatedAt);

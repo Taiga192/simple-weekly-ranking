@@ -1,0 +1,10 @@
+name = "rangliste"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rangliste"
+# Die ID aus dem Cloudflare-Dashboard (D1 → rangliste) hier eintragen:
+database_id = "af1df409-792e-423c-8fa0-d03f073c29b1"
